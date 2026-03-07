@@ -25,7 +25,30 @@
       font-family: 'IBM Plex Sans', sans-serif;
       font-size: 13px;
     }
+    .period-btn {
+    background: var(--surface2, #161c2c);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    }
+
+    .period-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    }
+
+    .period-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(232, 160, 32, 0.08);
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -63,15 +86,35 @@
   <main style="padding: 28px 32px; max-width: 1600px; margin: 0 auto;">
 
     <section id="prices" style="
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 24px;
-      margin-bottom: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 16px;
     ">
-      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
         01 · Gas Price Monitor
-      </div>
-      <div style="color: var(--muted); font-size: 11px;">Chart coming in Phase 2</div>
+    </div>
+    <div style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+        Natural Gas Prices
+    </div>
+    <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
+        Brent Crude · Henry Hub · TTF — live via yfinance
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+    <button onclick="setPeriod('1mo')"  class="period-btn" id="btn-1mo">1M</button>
+    <button onclick="setPeriod('3mo')"  class="period-btn" id="btn-3mo">3M</button>
+    <button onclick="setPeriod('6mo')"  class="period-btn" id="btn-6mo">6M</button>
+    <button onclick="setPeriod('1y')"   class="period-btn" id="btn-1y">1Y</button>
+    <button onclick="setPeriod('2y')"   class="period-btn" id="btn-2y" >2Y</button>
+    </div>
+
+    <div id="loading-prices" style="color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px;">
+        Loading price data...
+    </div>
+
+    <canvas id="priceChart" style="display:none;"></canvas>
+
     </section>
 
     <section id="events" style="
@@ -124,5 +167,6 @@
 
   </main>
 
+  <script src="prices.js"></script>
 </body>
 </html>
