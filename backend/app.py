@@ -14,6 +14,17 @@ TICKERS = {
     'lng':   'LNG',
 }
 
+LIVE_TICKERS = {
+    'ttf':      'TTF=F',
+    'henry':    'NG=F',
+    'brent':    'BZ=F',
+    'nakilat':  'QGTS.QA',
+    'aramco':   '2222.SR',
+    'shell':    'SHEL',
+    'total':    'TTE',
+    'cheniere': 'LNG',
+}
+
 @app.route('/')
 def index():
     return send_from_directory('..', 'index.html')
@@ -21,37 +32,58 @@ def index():
 @app.route('/api/prices/<commodity>')
 def get_prices(commodity):
     ticker = TICKERS.get(commodity.lower())
-
     if not ticker:
         return jsonify({'error': f'Unknown commodity: {commodity}'}), 404
-
     try:
         period = request.args.get('period', '2y')
-        interval = '1d' if period == '1mo' else '1wk' if period =='3mo' else '1mo'
+        interval = '1d' if period == '1mo' else '1wk' if period in ['3mo', '6mo'] else '1mo'
         raw = yf.download(ticker, period=period, interval=interval, auto_adjust=True)
         raw.columns = [col[0] if isinstance(col, tuple) else col for col in raw.columns]
         close = raw['Close'].dropna()
-
-        prices = []
         prices = []
         for date, value in close.items():
-            date_str = date.strftime('%Y-%m-%d') if interval == '1d' else date.strftime('%Y-%m-%d') if interval == '1wk' else date.strftime('%Y-%m')
+            date_str = date.strftime('%Y-%m-%d') if interval in ['1d', '1wk'] else date.strftime('%Y-%m')
             prices.append({
                 'date': date_str,
                 'value': round(float(value), 2)
             })
-
         return jsonify({
             'commodity': commodity,
             'ticker': ticker,
             'data': prices
         })
-
     except Exception as e:
         print(f"ERROR for {commodity}: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/live')
+def get_live_prices():
+    results = []
+    for name, ticker in LIVE_TICKERS.items():
+        try:
+            data = yf.Ticker(ticker)
+            hist = data.history(period='2d')
+            if len(hist) < 2:
+                raise ValueError('Not enough data')
+            prev_close = round(float(hist['Close'].iloc[-2]), 2)
+            last_price = round(float(hist['Close'].iloc[-1]), 2)
+            change_pct = round(((last_price - prev_close) / prev_close) * 100, 2)
+            results.append({
+                'name': name,
+                'ticker': ticker,
+                'price': last_price,
+                'change_pct': change_pct,
+            })
+        except Exception as e:
+            results.append({
+                'name': name,
+                'ticker': ticker,
+                'price': None,
+                'change_pct': None,
+            })
+    return jsonify(results)
 
 @app.route('/api/health')
 def health():
