@@ -162,6 +162,6 @@ async function loadPriceChart(period = '2y') {
   }
 }
 
-// Set 2Y as default and load
-document.getElementById('btn-2y').classList.add('active');
-loadPriceChart('2y');
+// Set 1mo as default and load
+document.getElementById('btn-1mo').classList.add('active');
+loadPriceChart('1mo');
