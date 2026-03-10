@@ -150,7 +150,34 @@
       <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
         02 · Hormuz Event Tracker
       </div>
-      <div style="color: var(--muted); font-size: 11px;">Event feed coming in Phase 3</div>
+      <div style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+        Middle East Energy Intelligence
+      </div>
+      <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
+        Live news filtered for energy, shipping, and infrastructure events · Updates every 5 min
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+        <div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #e8a020; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1e2a42;">
+            ◆ Global Energy Markets
+          </div>
+          <div id="news-general">
+            <div style="color:#5a6480; font-family:'IBM Plex Mono',monospace; font-size:10px;">Loading...</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #d43f3f; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1e2a42;">
+            ⚠ Hormuz · Infrastructure · Attacks
+          </div>
+          <div id="news-hormuz">
+            <div style="color:#5a6480; font-family:'IBM Plex Mono',monospace; font-size:10px;">Loading...</div>
+          </div>
+        </div>
+
+      </div>
     </section>
 
     <section id="sentiment" style="
@@ -193,5 +220,6 @@
 
   <script src="prices.js"></script>
   <script src="ticker.js"></script>
+  <script src="news.js"></script>
 </body>
 </html>

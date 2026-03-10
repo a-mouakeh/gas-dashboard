@@ -3,9 +3,15 @@ from flask_cors import CORS
 import yfinance as yf
 import pandas as pd
 import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__, static_folder='..', static_url_path='')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 
 TICKERS = {
     'ttf':   'TTF=F',
@@ -84,6 +90,60 @@ def get_live_prices():
                 'change_pct': None,
             })
     return jsonify(results)
+
+@app.route('/api/news/general')
+def get_general_news():
+    try:
+        query = 'LNG OR "natural gas" OR "gas pipeline" OR "Gulf energy" OR "energy market"'
+        url = (
+            f'https://newsapi.org/v2/everything?'
+            f'q={requests.utils.quote(query)}'
+            f'&language=en'
+            f'&sortBy=publishedAt'
+            f'&pageSize=15'
+            f'&apiKey={NEWS_API_KEY}'
+        )
+        response = requests.get(url)
+        data = response.json()
+        articles = []
+        for a in data.get('articles', []):
+            articles.append({
+                'title':       a.get('title'),
+                'source':      a.get('source', {}).get('name'),
+                'url':         a.get('url'),
+                'publishedAt': a.get('publishedAt'),
+                'description': a.get('description'),
+            })
+        return jsonify(articles)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/news/hormuz')
+def get_hormuz_news():
+    try:
+        query = '"Strait of Hormuz" OR "tanker attack" OR "oil facility attack" OR "gas facility" OR "shipping attack" OR "energy infrastructure" OR "Houthi"'
+        url = (
+            f'https://newsapi.org/v2/everything?'
+            f'q={requests.utils.quote(query)}'
+            f'&language=en'
+            f'&sortBy=publishedAt'
+            f'&pageSize=15'
+            f'&apiKey={NEWS_API_KEY}'
+        )
+        response = requests.get(url)
+        data = response.json()
+        articles = []
+        for a in data.get('articles', []):
+            articles.append({
+                'title':       a.get('title'),
+                'source':      a.get('source', {}).get('name'),
+                'url':         a.get('url'),
+                'publishedAt': a.get('publishedAt'),
+                'description': a.get('description'),
+            })
+        return jsonify(articles)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/health')
 def health():
