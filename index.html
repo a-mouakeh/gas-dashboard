@@ -25,32 +25,33 @@
       font-family: 'IBM Plex Sans', sans-serif;
       font-size: 13px;
     }
+
     .period-btn {
-    background: var(--surface2, #161c2c);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    padding: 5px 12px;
-    cursor: pointer;
-    transition: all 0.15s;
+      background: var(--surface2, #161c2c);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
     .period-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .period-btn.active {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(232, 160, 32, 0.08);
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(232, 160, 32, 0.08);
     }
-    
+
     @keyframes ticker {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
     }
 
   </style>
@@ -73,7 +74,6 @@
         GAS MARKET INTELLIGENCE · MERCURIA ENERGY
       </div>
     </div>
-
     <div style="
       display: flex;
       align-items: center;
@@ -89,6 +89,7 @@
     </div>
   </header>
 
+  <!-- TICKER BANNER -->
   <div style="
     background: #111520;
     border-bottom: 1px solid #1e2a42;
@@ -107,40 +108,36 @@
 
   <main style="padding: 28px 32px; max-width: 1600px; margin: 0 auto;">
 
-  <main style="padding: 28px 32px; max-width: 1600px; margin: 0 auto;">
-
+    <!-- 01 PRICE MONITOR -->
     <section id="prices" style="
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 24px;
-    margin-bottom: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 16px;
     ">
-    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
         01 · Gas Price Monitor
-    </div>
-    <div style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+      </div>
+      <div style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
         Natural Gas Prices
-    </div>
-    <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
+      </div>
+      <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
         Brent Crude · Henry Hub · TTF — live via yfinance
-    </div>
-
-    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-    <button onclick="setPeriod('1mo')"  class="period-btn" id="btn-1mo">1M</button>
-    <button onclick="setPeriod('3mo')"  class="period-btn" id="btn-3mo">3M</button>
-    <button onclick="setPeriod('6mo')"  class="period-btn" id="btn-6mo">6M</button>
-    <button onclick="setPeriod('1y')"   class="period-btn" id="btn-1y">1Y</button>
-    <button onclick="setPeriod('2y')"   class="period-btn" id="btn-2y" >2Y</button>
-    </div>
-
-    <div id="loading-prices" style="color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px;">
+      </div>
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button onclick="setPeriod('1mo')" class="period-btn" id="btn-1mo">1M</button>
+        <button onclick="setPeriod('3mo')" class="period-btn" id="btn-3mo">3M</button>
+        <button onclick="setPeriod('6mo')" class="period-btn" id="btn-6mo">6M</button>
+        <button onclick="setPeriod('1y')"  class="period-btn" id="btn-1y">1Y</button>
+        <button onclick="setPeriod('2y')"  class="period-btn" id="btn-2y">2Y</button>
+      </div>
+      <div id="loading-prices" style="color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px;">
         Loading price data...
-    </div>
-
-    <canvas id="priceChart" style="display:none;"></canvas>
-
+      </div>
+      <canvas id="priceChart" style="display:none;"></canvas>
     </section>
 
+    <!-- 02 EVENT TRACKER -->
     <section id="events" style="
       background: var(--surface);
       border: 1px solid var(--border);
@@ -156,9 +153,7 @@
       <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
         Live news filtered for energy, shipping, and infrastructure events · Updates every 5 min
       </div>
-
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-
         <div>
           <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #e8a020; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1e2a42;">
             ◆ Global Energy Markets
@@ -167,7 +162,6 @@
             <div style="color:#5a6480; font-family:'IBM Plex Mono',monospace; font-size:10px;">Loading...</div>
           </div>
         </div>
-
         <div>
           <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #d43f3f; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1e2a42;">
             ⚠ Hormuz · Infrastructure · Attacks
@@ -176,10 +170,10 @@
             <div style="color:#5a6480; font-family:'IBM Plex Mono',monospace; font-size:10px;">Loading...</div>
           </div>
         </div>
-
       </div>
     </section>
 
+    <!-- 03 SENTIMENT -->
     <section id="sentiment" style="
       background: var(--surface);
       border: 1px solid var(--border);
@@ -189,9 +183,46 @@
       <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
         03 · News Sentiment Analysis
       </div>
-      <div style="color: var(--muted); font-size: 11px;">FinBERT scores coming in Phase 4</div>
+      <div style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+        FinBERT Market Sentiment
+      </div>
+      <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
+        NLP sentiment scoring of Middle East energy headlines · Powered by FinBERT
+      </div>
+
+      <div style="display: grid; grid-template-columns: 200px 1fr 1fr 1fr; gap: 2px; margin-bottom: 20px;">
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 20px; text-align: center;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;">Fear Index</div>
+          <div id="fear-index-value" style="font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; color: var(--danger); line-height: 1;">--</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 4px;">out of 100</div>
+          <div id="fear-label" style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; padding: 4px 8px; border: 1px solid var(--danger); color: var(--danger); display: inline-block;">--</div>
+        </div>
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 20px; text-align: center;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #d43f3f; margin-bottom: 8px;">Negative</div>
+          <div id="count-negative" style="font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: #d43f3f;">--</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 4px;">headlines</div>
+        </div>
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 20px; text-align: center;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;">Neutral</div>
+          <div id="count-neutral" style="font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: var(--muted);">--</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 4px;">headlines</div>
+        </div>
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 20px; text-align: center;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #2d8a55; margin-bottom: 8px;">Positive</div>
+          <div id="count-positive" style="font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: #2d8a55;">--</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 4px;">headlines</div>
+        </div>
+      </div>
+
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+        Scored Headlines
+      </div>
+      <div id="sentiment-articles">
+        <div style="color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px;">Loading sentiment analysis...</div>
+      </div>
     </section>
 
+    <!-- 04 SUPPLY RISK -->
     <section id="supply" style="
       background: var(--surface);
       border: 1px solid var(--border);
@@ -204,6 +235,7 @@
       <div style="color: var(--muted); font-size: 11px;">Supply data coming in Phase 5</div>
     </section>
 
+    <!-- 05 MARKET REACTION -->
     <section id="reactions" style="
       background: var(--surface);
       border: 1px solid var(--border);
@@ -221,5 +253,6 @@
   <script src="prices.js"></script>
   <script src="ticker.js"></script>
   <script src="news.js"></script>
+  <script src="sentiment.js"></script>
 </body>
 </html>
