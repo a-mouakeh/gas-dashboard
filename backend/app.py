@@ -255,7 +255,87 @@ def get_sentiment():
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+    
 
+@app.route('/api/supply-risk')
+def get_supply_risk():
+    try:
+        # Component 1 — Sentiment score (already computed)
+        query = '"Strait of Hormuz" OR "tanker attack" OR "oil facility" OR "gas facility" OR "Houthi" OR "Iran energy"'
+        url = (
+            f'https://newsapi.org/v2/everything?'
+            f'q={requests.utils.quote(query)}'
+            f'&language=en'
+            f'&sortBy=publishedAt'
+            f'&pageSize=30'
+            f'&apiKey={NEWS_API_KEY}'
+        )
+        response = requests.get(url)
+        data = response.json()
+        articles = data.get('articles', [])
+
+        # Filter relevant articles
+        relevant = [a for a in articles if a.get('title') and is_relevant(a['title'])]
+
+        # Score headlines
+        sentiment_scores = []
+        for a in relevant[:15]:
+            s = score_headline(a['title'])
+            s = override_sentiment(a['title'], s)
+            sentiment_scores.append(s)
+
+        negative_count = sum(1 for s in sentiment_scores if s['label'] == 'negative')
+        total = len(sentiment_scores) if sentiment_scores else 1
+        sentiment_component = round((negative_count / total) * 100)
+
+        # Component 2 — News volume (more articles = higher risk)
+        volume_component = min(len(relevant) * 5, 100)
+
+        # Component 3 — TTF price volatility
+        raw = yf.download('TTF=F', period='1mo', interval='1d', auto_adjust=True)
+        raw.columns = [col[0] if isinstance(col, tuple) else col for col in raw.columns]
+        closes = raw['Close'].dropna()
+        if len(closes) > 1:
+            returns = closes.pct_change().dropna()
+            volatility = float(returns.std() * 100)
+            volatility_component = min(round(volatility * 10), 100)
+        else:
+            volatility_component = 50
+
+        # Composite score — weighted average
+        # Sentiment: 50%, Volume: 20%, Volatility: 30%
+        composite = round(
+            sentiment_component * 0.50 +
+            volume_component    * 0.20 +
+            volatility_component * 0.30
+        )
+
+        # Risk level
+        if composite >= 70:
+            risk_level = 'CRITICAL'
+        elif composite >= 40:
+            risk_level = 'ELEVATED'
+        else:
+            risk_level = 'LOW'
+
+        return jsonify({
+            'composite': composite,
+            'risk_level': risk_level,
+            'components': {
+                'sentiment': sentiment_component,
+                'volume':    volume_component,
+                'volatility': volatility_component
+            },
+            'articles_analysed': total
+        })
+
+    except Exception as e:
+        print(f"Supply risk error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    
+    
 @app.route('/api/health')
 def health():
     return jsonify({'status': 'ok'})
