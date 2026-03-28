@@ -5,8 +5,30 @@ import pandas as pd
 import os
 import requests
 from dotenv import load_dotenv
+from transformers import BertTokenizer, BertForSequenceClassification
+import torch
 
 load_dotenv()
+
+print("Loading FinBERT...")
+tokenizer = BertTokenizer.from_pretrained('ProsusAI/finbert')
+finbert = BertForSequenceClassification.from_pretrained('ProsusAI/finbert')
+finbert.eval()
+print("FinBERT ready.")
+
+def score_headline(text):
+    inputs = tokenizer(text, return_tensors='pt', truncation=True, max_length=512)
+    with torch.no_grad():
+        outputs = finbert(**inputs)
+    probs = torch.softmax(outputs.logits, dim=1).squeeze()
+    labels = ['positive', 'negative', 'neutral']
+    scores = {labels[i]: round(float(probs[i]), 4) for i in range(3)}
+    top = max(scores, key=scores.get)
+    return {
+        'label': top,
+        'scores': scores,
+        'confidence': round(scores[top], 4)
+    }
 
 app = Flask(__name__, static_folder='..', static_url_path='')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -143,6 +165,95 @@ def get_hormuz_news():
             })
         return jsonify(articles)
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+SENTIMENT_KEYWORDS = [
+    'hormuz', 'iran', 'tanker', 'lng', 'gas facility',
+    'oil facility', 'shipping', 'houthi', 'gulf energy',
+    'strait', 'pipeline attack', 'refinery', 'crude supply'
+]
+
+def is_relevant(title):
+    title_lower = title.lower()
+    return any(kw in title_lower for kw in SENTIMENT_KEYWORDS)
+
+ESCALATION_KEYWORDS = [
+    'strike', 'attack', 'bomb', 'missile', 'drone attack',
+    'invasion', 'war', 'ultimatum', 'threatens', 'seize',
+    'incursion', 'conflict escalat', 'emergency', 'shutdown',
+    'closure', 'blockade'
+]
+
+def override_sentiment(title, sentiment):
+    title_lower = title.lower()
+    if any(kw in title_lower for kw in ESCALATION_KEYWORDS):
+        return {
+            'label': 'negative',
+            'confidence': max(sentiment['confidence'], 0.75),
+            'scores': sentiment['scores']
+        }
+    return sentiment
+
+@app.route('/api/sentiment')
+def get_sentiment():
+    try:
+        query = '"Strait of Hormuz" OR "tanker attack" OR "oil facility" OR "gas facility" OR "Houthi" OR "Iran energy"'
+        url = (
+            f'https://newsapi.org/v2/everything?'
+            f'q={requests.utils.quote(query)}'
+            f'&language=en'
+            f'&sortBy=publishedAt'
+            f'&pageSize=30'
+            f'&apiKey={NEWS_API_KEY}'
+        )
+        response = requests.get(url)
+        data = response.json()
+        articles = data.get('articles', [])
+
+        results = []
+        scores = {'positive': 0, 'negative': 0, 'neutral': 0}
+        count = 0
+
+        for a in articles:
+            title = a.get('title', '')
+            if not title:
+                continue
+
+            # Filter 1 — must contain relevant keyword
+            if not is_relevant(title):
+                continue
+
+            sentiment = score_headline(title)
+            sentiment = override_sentiment(title, sentiment)
+
+            # Filter 2 — skip low confidence scores
+            if sentiment['confidence'] < 0.6:
+                continue
+
+            results.append({
+                'title': title,
+                'source': a.get('source', {}).get('name'),
+                'publishedAt': a.get('publishedAt'),
+                'label': sentiment['label'],
+                'confidence': sentiment['confidence'],
+                'scores': sentiment['scores']
+            })
+            scores[sentiment['label']] += 1
+            count += 1
+
+        fear_index = round((scores['negative'] / count) * 100) if count > 0 else 0
+
+        return jsonify({
+            'fear_index': fear_index,
+            'counts': scores,
+            'total': count,
+            'articles': results
+        })
+
+    except Exception as e:
+        print(f"Sentiment error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/health')
