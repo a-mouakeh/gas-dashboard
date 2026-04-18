@@ -358,10 +358,12 @@ def get_supply_risk():
 def get_forecast():
     try:
         ttf_raw = yf.download('TTF=F', period='5y', interval='1mo', auto_adjust=True)
+        ttf_raw = ttf_raw.squeeze(axis=1) if ttf_raw.shape[1] == 1 else ttf_raw
         ttf_raw.columns = [col[0] if isinstance(col, tuple) else col for col in ttf_raw.columns]
         ttf_prices = ttf_raw['Close'].dropna()
 
         brent_raw = yf.download('BZ=F', period='5y', interval='1mo', auto_adjust=True)
+        brent_raw = brent_raw.squeeze(axis=1) if brent_raw.shape[1] == 1 else brent_raw
         brent_raw.columns = [col[0] if isinstance(col, tuple) else col for col in brent_raw.columns]
         brent_prices = brent_raw['Close'].dropna()
 

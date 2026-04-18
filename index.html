@@ -438,6 +438,115 @@
   </div>
 </section>
 
+    <!-- 07 TTF PRICE FORECAST -->
+<section id="forecast" style="
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px;
+  margin-bottom: 16px;
+">
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
+    07 · TTF Price Forecast
+  </div>
+  <div style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+    Dual-Regime Price Forecast Model
+  </div>
+  <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
+    Ridge Regression · Normal & Crisis regimes · FinBERT sentiment + EU storage + Brent linkage · Time-weighted
+  </div>
+
+  <div id="fc-loading" style="color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px;">
+    Running forecast model...
+  </div>
+
+  <div id="fc-content" style="display:none;">
+  <div style="display: grid; grid-template-columns: 300px 1fr; gap: 16px;">
+
+    <!-- Left: KPIs + divergence + methodology -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+
+      <!-- KPI cards stacked vertically -->
+      <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Current TTF</div>
+        <div id="fc-current" style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: #d4dae8;">--</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Normal</div>
+          <div id="fc-normal" style="font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: #e8a020;">--</div>
+        </div>
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Crisis</div>
+          <div id="fc-crisis" style="font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: #d43f3f;">--</div>
+        </div>
+      </div>
+
+      <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 14px 16px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Geopolitical Risk Premium</div>
+        <div id="fc-premium" style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--accent);">--</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px;">€/MWh above normal</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">EU Storage</div>
+          <div id="fc-storage" style="font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: #d43f3f;">--</div>
+        </div>
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px; text-align: center;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Regime</div>
+          <div id="fc-regime" style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; padding: 4px 8px; border: 1px solid; display: inline-block; letter-spacing: 0.1em;">--</div>
+        </div>
+      </div>
+
+      <!-- Divergence alert -->
+      <div id="fc-divergence" style="
+        display: none;
+        padding: 10px 14px;
+        border: 1px solid #1e2a42;
+        border-left: 3px solid var(--accent);
+        background: rgba(232,160,32,0.04);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        line-height: 1.7;
+      "></div>
+
+      <!-- Methodology -->
+      <div style="
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 8px;
+        color: var(--muted);
+        line-height: 1.8;
+        letter-spacing: 0.03em;
+        flex: 1;
+      ">
+        <div style="color: var(--accent); margin-bottom: 4px;">MODEL NOTES</div>
+        Ridge Regression (α=1.0)<br>
+        10 features incl. FinBERT + EU storage<br>
+        Normal regime: fear &lt; 60<br>
+        Crisis regime: fear ≥ 60<br>
+        Exp. time weights λ=0.15<br>
+        Bands: IQR-based ±1σ
+      </div>
+
+    </div>
+
+    <!-- Right: Chart -->
+    <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <span>TTF Last 12M + 3-Month Forecast</span>
+        <span style="color: #3a4460; font-size: 8px;">SHADED BANDS = CONFIDENCE INTERVALS</span>
+      </div>
+      <canvas id="forecastChart" style="flex: 1;"></canvas>
+    </div>
+
+  </div>
+  </div>
+</section>
+
   </main>
 
   <script src="prices.js"></script>
@@ -446,5 +555,6 @@
   <script src="sentiment.js"></script>
   <script src="supply.js"></script>
   <script src="infrastructure.js"></script>
+  <script src="forecast.js"></script>
 </body>
 </html>
