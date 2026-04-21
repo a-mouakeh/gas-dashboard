@@ -164,4 +164,5 @@ async function loadPriceChart(period = '2y') {
 
 // Set 1mo as default and load
 document.getElementById('btn-1mo').classList.add('active');
-loadPriceChart('1mo');
+// Small delay to ensure DOM is ready
+setTimeout(() => loadPriceChart('1mo'), 100);

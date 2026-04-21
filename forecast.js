@@ -1,7 +1,19 @@
 async function loadForecast() {
   try {
-    const response = await fetch(`http://localhost:8080/api/forecast?t=${Date.now()}`);
-    const data = await response.json();
+    async function fetchWithRetry(url, retries = 3) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.json();
+        } catch (e) {
+          if (i === retries - 1) throw e;
+          await new Promise(r => setTimeout(r, 2000)); // wait 2s before retry
+        }
+      }
+    }
+
+    const data = await fetchWithRetry(`http://localhost:8080/api/forecast?t=${Date.now()}`);
 
     // Update KPI cards
     document.getElementById('fc-current').textContent = `€${data.current_price}`;

@@ -14,6 +14,9 @@ from scipy import stats
 
 load_dotenv()
 
+_forecast_cache = {'data': None, 'timestamp': 0}
+FORECAST_CACHE_TTL = 300  # 5 minutes
+
 print("Loading FinBERT...")
 tokenizer = BertTokenizer.from_pretrained('ProsusAI/finbert')
 finbert = BertForSequenceClassification.from_pretrained('ProsusAI/finbert')
@@ -356,6 +359,10 @@ def get_supply_risk():
 
 @app.route('/api/forecast')
 def get_forecast():
+    import time
+    now = time.time()
+    if _forecast_cache['data'] and (now - _forecast_cache['timestamp']) < FORECAST_CACHE_TTL:
+        return jsonify(_forecast_cache['data'])
     try:
         ttf_raw = yf.download('TTF=F', period='5y', interval='1mo', auto_adjust=True)
         ttf_raw = ttf_raw.squeeze(axis=1) if ttf_raw.shape[1] == 1 else ttf_raw
@@ -563,7 +570,7 @@ def get_forecast():
                 'crisis_lower': max(0, round(crisis_m - std_crisis * (1 + m * 0.1), 2)),
             })
 
-        return jsonify({
+        result = {
             'current_price':        round(current_price, 2),
             'normal_forecast':      round(normal_forecast, 2),
             'crisis_forecast':      round(crisis_forecast, 2),
@@ -579,7 +586,10 @@ def get_forecast():
             'has_crisis_model':     has_crisis_model,
             'historical':           historical,
             'forecast':             forecast_points,
-        })
+        }
+        _forecast_cache['data'] = result
+        _forecast_cache['timestamp'] = time.time()
+        return jsonify(result)
 
     except Exception as e:
         print(f"Forecast error: {e}")
