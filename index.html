@@ -547,6 +547,138 @@
   </div>
 </section>
 
+ <!-- 08 CORRELATION ANALYSIS -->
+    <section id="correlation" style="
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 16px;
+    ">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
+        08 · Correlation Analysis
+      </div>
+      <div style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+        Fear Index × TTF Price Correlation
+      </div>
+      <div style="color: var(--muted); font-size: 11px; margin-bottom: 20px;">
+        Pearson correlation · FinBERT geopolitical fear vs monthly TTF returns · 2-year window · regime-split
+      </div>
+
+      <div id="corr-loading" style="color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px;">
+        Running correlation model...
+      </div>
+
+      <div id="corr-content" style="display:none; grid-template-columns: 300px 1fr; gap: 16px;">
+
+        <!-- Left: KPIs + regime table + interpretation + method note -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+
+          <!-- KPI row 1: r and r² -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+
+            <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Pearson r</div>
+              <div id="corr-r" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900;">--</div>
+              <div id="corr-r-sub" style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px;">--</div>
+            </div>
+
+            <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">R²</div>
+              <div id="corr-r2" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--accent);">--</div>
+              <div id="corr-r2-sub" style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px;">--</div>
+            </div>
+
+          </div>
+
+          <!-- KPI row 2: p-value and n -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+
+            <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">p-value</div>
+              <div id="corr-p" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900;">--</div>
+              <div id="corr-p-sub" style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px;">--</div>
+            </div>
+
+            <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Observations</div>
+              <div id="corr-n" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: #d4dae8;">--</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px;">monthly obs.</div>
+            </div>
+
+          </div>
+
+          <!-- Regime comparison -->
+          <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 14px 16px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px;">Regime Breakdown</div>
+
+            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: #d43f3f; margin-top: 3px; flex-shrink: 0;"></div>
+              <div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #d43f3f; letter-spacing: 0.06em;">CRISIS  (fear ≥ 60)</div>
+                <div id="corr-crisis-stats" style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 2px; letter-spacing: 0.03em;">--</div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: #e8a020; margin-top: 3px; flex-shrink: 0;"></div>
+              <div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #e8a020; letter-spacing: 0.06em;">NORMAL  (fear &lt; 60)</div>
+                <div id="corr-normal-stats" style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 2px; letter-spacing: 0.03em;">--</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interpretation -->
+          <div style="
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            background: rgba(232,160,32,0.04);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            line-height: 1.8;
+            letter-spacing: 0.03em;
+          ">
+            <div style="color: var(--accent); margin-bottom: 4px;">INTERPRETATION</div>
+            <div id="corr-interp" style="color: var(--muted);">--</div>
+          </div>
+
+          <!-- Method note -->
+          <div style="
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            color: var(--muted);
+            line-height: 1.8;
+            letter-spacing: 0.03em;
+            flex: 1;
+          ">
+            <div style="color: var(--accent); margin-bottom: 4px;">MODEL NOTES</div>
+            Pearson correlation (scipy.stats)<br>
+            Monthly TTF front-month % returns<br>
+            FinBERT fear index · 2-year window<br>
+            Crisis regime: fear ≥ 60<br>
+            Historical fear labels aligned to forecast model<br>
+            Trendline: OLS linear regression
+          </div>
+
+        </div>
+
+        <!-- Right: Chart -->
+        <div style="background: var(--surface2, #161c2c); border: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Fear Index vs TTF Monthly Returns  ·  2Y</span>
+            <span style="color: #3a4460; font-size: 8px;">DASHED LINE = OLS TRENDLINE</span>
+          </div>
+          <div style="flex: 1; position: relative; min-height: 380px;">
+            <canvas id="correlationChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <script src="prices.js"></script>
@@ -556,5 +688,6 @@
   <script src="supply.js"></script>
   <script src="infrastructure.js"></script>
   <script src="forecast.js"></script>
+  <script src="correlation.js"></script>
 </body>
 </html>

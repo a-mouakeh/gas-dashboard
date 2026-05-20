@@ -597,7 +597,129 @@ def get_forecast():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
-
+@app.route('/api/correlation')
+def get_correlation():
+    try:
+        import time
+ 
+        # ── 1. Monthly TTF — 2 years ───────────────────────────────────────
+        raw = yf.download('TTF=F', period='2y', interval='1mo', auto_adjust=True, progress=False)
+        if raw.empty:
+            raw = yf.download('NG=F', period='2y', interval='1mo', auto_adjust=True, progress=False)
+ 
+        raw.columns = [col[0] if isinstance(col, tuple) else col for col in raw.columns]
+        close = raw['Close'].dropna()
+        returns = close.pct_change().dropna() * 100  # monthly %
+ 
+        # ── 2. Fear history — same labels as forecast route ────────────────
+        HISTORICAL_FEAR = {
+            '2022-01': 80, '2022-02': 80, '2022-03': 80, '2022-04': 80,
+            '2022-05': 80, '2022-06': 80, '2022-07': 80, '2022-08': 80,
+            '2022-09': 80, '2022-10': 80, '2022-11': 80, '2022-12': 80,
+            '2023-01': 40, '2023-02': 38, '2023-03': 35, '2023-04': 32,
+            '2023-05': 30, '2023-06': 28, '2023-07': 30, '2023-08': 33,
+            '2023-09': 38, '2023-10': 55, '2023-11': 52, '2023-12': 48,
+            '2024-01': 42, '2024-02': 40, '2024-03': 44, '2024-04': 48,
+            '2024-05': 45, '2024-06': 42, '2024-07': 40, '2024-08': 44,
+            '2024-09': 50, '2024-10': 65, '2024-11': 65, '2024-12': 65,
+            '2025-01': 55, '2025-02': 52, '2025-03': 56, '2025-04': 60,
+            '2025-05': 58, '2025-06': 55, '2025-07': 53, '2025-08': 56,
+            '2025-09': 60, '2025-10': 64, '2025-11': 67, '2025-12': 70,
+            '2026-01': 75, '2026-02': 75, '2026-03': 80,
+        }
+        LIVE_FEAR_CUTOFF = '2026-03'
+ 
+        # Use cached fear from forecast if available, else default
+        live_fear = 70
+        if _forecast_cache['data']:
+            live_fear = _forecast_cache['data'].get('fear_index', 70)
+ 
+        # ── 3. Align fear values to return dates ───────────────────────────
+        fear_vals, ret_vals, dates_out, regimes = [], [], [], []
+ 
+        for date, ret in returns.items():
+            mk = date.strftime('%Y-%m')
+            if mk >= LIVE_FEAR_CUTOFF:
+                fear = live_fear
+            else:
+                fear = HISTORICAL_FEAR.get(mk, 50)
+ 
+            fear_vals.append(float(fear))
+            ret_vals.append(round(float(ret), 4))
+            dates_out.append(mk)
+            regimes.append('crisis' if fear >= 60 else 'normal')
+ 
+        if len(fear_vals) < 5:
+            return jsonify({'error': 'Not enough data'}), 500
+ 
+        x = np.array(fear_vals)
+        y = np.array(ret_vals)
+ 
+        # ── 4. Pearson correlation ─────────────────────────────────────────
+        r, p_value = stats.pearsonr(x, y)
+ 
+        # ── 5. Linear trendline ────────────────────────────────────────────
+        slope, intercept, _, _, _ = stats.linregress(x, y)
+        x_line = [float(x.min()), float(x.max())]
+        y_line = [round(slope * xi + intercept, 4) for xi in x_line]
+ 
+        # ── 6. Significance label ──────────────────────────────────────────
+        if p_value < 0.01:
+            significance = 'Highly Significant'
+            sig_note = 'p < 0.01'
+        elif p_value < 0.05:
+            significance = 'Significant'
+            sig_note = 'p < 0.05'
+        elif p_value < 0.10:
+            significance = 'Marginal'
+            sig_note = 'p < 0.10'
+        else:
+            significance = 'Not Significant'
+            sig_note = 'p ≥ 0.10'
+ 
+        # ── 7. Split scatter points by regime ──────────────────────────────
+        crisis_pts = [
+            {'x': fear_vals[i], 'y': ret_vals[i], 'date': dates_out[i]}
+            for i in range(len(regimes)) if regimes[i] == 'crisis'
+        ]
+        normal_pts = [
+            {'x': fear_vals[i], 'y': ret_vals[i], 'date': dates_out[i]}
+            for i in range(len(regimes)) if regimes[i] == 'normal'
+        ]
+ 
+        # ── 8. Regime summary stats ────────────────────────────────────────
+        cr_ret = [ret_vals[i] for i in range(len(regimes)) if regimes[i] == 'crisis']
+        nr_ret = [ret_vals[i] for i in range(len(regimes)) if regimes[i] == 'normal']
+        cr_fear = [fear_vals[i] for i in range(len(regimes)) if regimes[i] == 'crisis']
+        nr_fear = [fear_vals[i] for i in range(len(regimes)) if regimes[i] == 'normal']
+ 
+        return jsonify({
+            'r':               round(float(r), 4),
+            'r_squared':       round(float(r ** 2), 4),
+            'p_value':         round(float(p_value), 4),
+            'significance':    significance,
+            'sig_note':        sig_note,
+            'n_samples':       len(fear_vals),
+            'slope':           round(float(slope), 4),
+            'trendline':       {'x': x_line, 'y': y_line},
+            'crisis_points':   crisis_pts,
+            'normal_points':   normal_pts,
+            'summary': {
+                'crisis_n':          len(cr_ret),
+                'normal_n':          len(nr_ret),
+                'avg_ret_crisis':    round(float(np.mean(cr_ret)), 2) if cr_ret else 0,
+                'avg_ret_normal':    round(float(np.mean(nr_ret)), 2) if nr_ret else 0,
+                'avg_fear_crisis':   round(float(np.mean(cr_fear)), 1) if cr_fear else 0,
+                'avg_fear_normal':   round(float(np.mean(nr_fear)), 1) if nr_fear else 0,
+            }
+        })
+ 
+    except Exception as e:
+        print(f'Correlation error: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+ 
 @app.route('/api/health')
 def health():
     return jsonify({'status': 'ok'})
